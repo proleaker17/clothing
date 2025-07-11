@@ -70,7 +70,7 @@
 <body class="bg-gray-100 min-h-screen font-sans">
   <!-- Header -->
   <header class="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-gray-200 shadow-lg z-50" style="max-width: 390px; margin: auto;">
-    <button id="burger" class="p-2 text-gray-800">
+    <button id="admin-panel-btn" class="p-2 text-gray-800">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
@@ -96,6 +96,57 @@
     <button id="get-products" class="mt-6 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition disabled:bg-gray-400" disabled>Get Products</button>
   </section>
 
+  <!-- Admin Panel -->
+  <section id="admin-panel-view" class="hidden p-4">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Admin Panel</h2>
+      <button id="close-admin-panel-btn" class="p-2 text-gray-600 hover:text-gray-900">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Add Product Form -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+      <h3 class="text-lg font-semibold mb-3">Add New Product</h3>
+      <form id="add-product-form" class="space-y-3">
+        <input type="text" id="new-product-name" placeholder="Product Name" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+        
+        <!-- Image Source Toggle -->
+        <div class="flex items-center space-x-4 pt-2">
+            <label class="flex items-center"><input type="radio" name="imageSource" value="url" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"> URL</label>
+            <label class="flex items-center"><input type="radio" name="imageSource" value="file" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"> Upload</label>
+        </div>
+
+        <!-- Image Inputs -->
+        <div id="image-url-group">
+            <input type="url" id="new-product-image-url" placeholder="Image URL" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div id="image-file-group" class="hidden">
+            <input type="file" id="new-product-image-file" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+
+        <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Add Product</button>
+      </form>
+    </div>
+
+    <!-- Delivery Time Setting -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+      <h3 class="text-lg font-semibold mb-3">Settings</h3>
+      <div class="flex items-center justify-between">
+        <label for="delivery-time" class="text-gray-700">Delivery Time (hours):</label>
+        <input type="number" id="delivery-time" min="1" value="4" class="w-20 px-3 py-2 border border-gray-300 rounded-md">
+      </div>
+    </div>
+
+    <!-- Product Management List -->
+    <h3 class="text-lg font-semibold mb-3">Manage Products</h3>
+    <div id="admin-product-list" class="space-y-3">
+      <!-- Admin product list will be generated here -->
+    </div>
+  </section>
+
   <!-- Form Modal -->
   <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white p-8 rounded-xl shadow-lg w-11/12 max-w-sm">
@@ -112,7 +163,7 @@
   <div id="truck-animation-container" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center hidden z-50">
       <!-- Using image for truck, bigger size -->
       <div id="truck">
-        <img src="https://cdn-icons-png.flaticon.com/512/726/726455.png" alt="Delivery Truck" class="w-120 h-120">
+        <img src="https://cdn-icons-png.flaticon.com/512/726/726455.png" alt="Delivery Truck" class="w-40 h-40">
       </div>
   </div>
 
@@ -134,7 +185,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // --- DATA ---
-      // Product data: replace name and img with your values and local image paths
+      let deliveryTimeInHours = 4;
     const products = [
       { id: 1, name: 'Jordan 1 Low', img: '1.jpg' },
       { id: 2, name: 'Arab Gucci Bag', img: '2.jpg' },
@@ -154,9 +205,13 @@
       // --- DOM ELEMENTS ---
       const productsView = document.getElementById('products-view');
       const cartView = document.getElementById('cart-view');
+      const adminPanelView = document.getElementById('admin-panel-view');
+      const allViews = [productsView, cartView, adminPanelView];
+
       const cartCount = document.getElementById('cart-count');
       const cartBtn = document.getElementById('cart-btn');
-      const burgerBtn = document.getElementById('burger');
+      const adminPanelBtn = document.getElementById('admin-panel-btn');
+      const closeAdminPanelBtn = document.getElementById('close-admin-panel-btn');
       const headerTitle = document.getElementById('header-title');
       const getProductsBtn = document.getElementById('get-products');
       const modal = document.getElementById('modal');
@@ -165,22 +220,38 @@
       const proceedBtn = document.getElementById('proceed-btn');
       const truckAnimationContainer = document.getElementById('truck-animation-container');
       const truck = document.getElementById('truck');
+      
+      // Admin Panel Elements
+      const addProductForm = document.getElementById('add-product-form');
+      const newProductNameInput = document.getElementById('new-product-name');
+      const adminProductList = document.getElementById('admin-product-list');
+      const deliveryTimeInput = document.getElementById('delivery-time');
+      const imageSourceRadios = document.querySelectorAll('input[name="imageSource"]');
+      const imageUrlGroup = document.getElementById('image-url-group');
+      const imageFileGroup = document.getElementById('image-file-group');
+      const newProductImageUrlInput = document.getElementById('new-product-image-url');
+      const newProductImageFileInput = document.getElementById('new-product-image-file');
 
       // --- FUNCTIONS ---
       // Function to switch between views
-      function showView(view) {
-        productsView.classList.add('hidden');
-        cartView.classList.add('hidden');
-        view.classList.remove('hidden');
-        headerTitle.textContent = view === productsView ? 'Products' : 'Cart';
+      function showView(viewToShow) {
+        allViews.forEach(view => view.classList.add('hidden'));
+        viewToShow.classList.remove('hidden');
+
+        if (viewToShow === productsView) {
+            headerTitle.textContent = 'Products';
+        } else if (viewToShow === cartView) {
+            headerTitle.textContent = 'Cart';
+        } else if (viewToShow === adminPanelView) {
+            headerTitle.textContent = 'Admin Panel';
+        }
       }
       
-      // Render all product cards
+      // Render all product cards for customers
       function renderProducts() {
         productsView.innerHTML = '';
         products.forEach(p => {
           const card = document.createElement('div');
-          // Using ring utility instead of border to prevent layout shift
           card.className = 'bg-white rounded-xl shadow-lg p-3 flex flex-col transition-transform duration-200 hover:scale-105';
           card.id = `prod-${p.id}`;
           if (cart.has(p.id)) {
@@ -200,18 +271,16 @@
           const addBtn = card.querySelector('.add-cart');
           const addIcon = addBtn.querySelector('svg');
           
-          // Update icon based on cart state
           const updateIcon = () => {
               if(cart.has(p.id)) {
-                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`; // Checkmark
+                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`;
               } else {
-                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />`; // Plus
+                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />`;
               }
           };
 
           addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Toggle ring class instead of border
             card.classList.toggle('ring-4');
             card.classList.toggle('ring-green-500');
             
@@ -230,6 +299,35 @@
         });
       }
 
+      // Render product list for the admin panel
+      function renderAdminProducts() {
+        adminProductList.innerHTML = '';
+        products.forEach((p, index) => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between bg-white p-2 rounded-md shadow';
+            item.innerHTML = `
+                <img src="${p.img}" class="h-12 w-12 rounded-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/100x100/E2E8F0/4A5568?text=Img';">
+                <span class="flex-1 mx-4 text-gray-800">${p.name}</span>
+                <button data-index="${index}" class="delete-product-btn p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            `;
+            adminProductList.appendChild(item);
+        });
+
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-product-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const productIndex = e.currentTarget.dataset.index;
+                products.splice(productIndex, 1);
+                renderAdminProducts();
+                renderProducts();
+            });
+        });
+      }
+
       // Render items in the cart view
       function renderCart() {
         const container = document.getElementById('cart-items');
@@ -241,8 +339,7 @@
         }
         
         getProductsBtn.disabled = false;
-        cart.forEach(id => {
-          const p = products.find(x => x.id === id);
+        products.filter(p => cart.has(p.id)).forEach(p => {
           const el = document.createElement('div');
           el.className = 'flex items-center bg-white rounded-2xl shadow-xl p-4 space-x-4';
           el.innerHTML = `
@@ -255,8 +352,8 @@
       }
 
       // Countdown timer for the success modal
-      function startCountdown(duration) {
-        let timer = duration;
+      function startCountdown(durationInSeconds) {
+        let timer = durationInSeconds;
         const display = document.getElementById('countdown');
         if (!display) return;
         clearInterval(window._countdownInterval);
@@ -273,46 +370,102 @@
       }
 
       // --- EVENT LISTENERS ---
-      // Navigate to cart view
       cartBtn.addEventListener('click', () => {
         showView(cartView);
         renderCart();
       });
       
-      // Navigate back to products view (using burger icon for now)
-      burgerBtn.addEventListener('click', () => {
+      adminPanelBtn.addEventListener('click', () => {
+        showView(adminPanelView);
+        renderAdminProducts();
+      });
+
+      closeAdminPanelBtn.addEventListener('click', () => {
         showView(productsView);
       });
 
-      // Show form when "Get Products" is clicked
       getProductsBtn.addEventListener('click', () => {
         formModal.classList.remove('hidden');
       });
 
-      // Handle form submission and truck animation
       proceedBtn.addEventListener('click', () => {
         formModal.classList.add('hidden');
         truckAnimationContainer.classList.remove('hidden');
         truck.classList.add('truck-driving');
 
-        // After animation, show the final success modal - updated duration
         setTimeout(() => {
           truckAnimationContainer.classList.add('hidden');
-          truck.classList.remove('truck-driving'); // Reset animation class
+          truck.classList.remove('truck-driving');
           modal.classList.remove('hidden');
-          startCountdown(4 * 3600); // Start countdown now
-        }, 1800); // Match new animation duration
+          startCountdown(deliveryTimeInHours * 3600);
+        }, 1800);
       });
 
-      // Close success modal and return to product page
       closeModalBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
         showView(productsView);
-        // Optionally clear cart and reset product styles
         cart.clear();
         cartCount.textContent = 0;
         getProductsBtn.disabled = true;
         renderProducts();
+      });
+
+      // Admin Panel Listeners
+      imageSourceRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'url') {
+                imageUrlGroup.classList.remove('hidden');
+                imageFileGroup.classList.add('hidden');
+            } else {
+                imageUrlGroup.classList.add('hidden');
+                imageFileGroup.classList.remove('hidden');
+            }
+        });
+      });
+
+      addProductForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = newProductNameInput.value.trim();
+        const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
+
+        if (!name) return;
+
+        const createProduct = (imgUrl) => {
+            const newProduct = {
+                id: Date.now(),
+                name,
+                img: imgUrl
+            };
+            products.unshift(newProduct); // Add to the beginning of the array
+            renderAdminProducts();
+            renderProducts();
+            addProductForm.reset();
+            imageUrlGroup.classList.remove('hidden');
+            imageFileGroup.classList.add('hidden');
+        };
+
+        if (imageSource === 'url') {
+            const img = newProductImageUrlInput.value.trim();
+            if (img) {
+                createProduct(img);
+            }
+        } else { // imageSource === 'file'
+            const file = newProductImageFileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    createProduct(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+      });
+
+      deliveryTimeInput.addEventListener('change', (e) => {
+        const newTime = parseInt(e.target.value, 10);
+        if (newTime > 0) {
+            deliveryTimeInHours = newTime;
+        }
       });
 
       // --- INITIALIZATION ---
