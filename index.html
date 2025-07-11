@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop</title>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /*
+      Здесь можно менять основные цвета сайта:
+      - Header: класс bg-gray-200 (светлосерый) и z-index через класс z-50
+      - Кнопка Get Products: класс bg-purple-600 и hover:bg-purple-700
+      - Модальное окно: градиент from-green-400 to-blue-500
+      - Фон страницы: класс bg-gray-100
+      - Цвета текста: text-gray-800, text-gray-600 и т.д.
+      Для изменения просто замените эти классы на нужные Tailwind цвета или добавьте свои в tailwind.config.js
+    */
+    body {
+      max-width: 390px;
+      margin: auto;
+      padding-top: 4rem; /* Отступ сверху под фиксированный хедер */
+      overflow-x: hidden; /* Prevent horizontal scroll during animation */
+    }
+    .checkmark {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 2;
+      stroke: #fff;
+      stroke-miterlimit: 10;
+      box-shadow: inset 0px 0px 0px #4caf50;
+      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+    .checkmark__circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 2;
+      stroke-miterlimit: 10;
+      stroke: #4caf50;
+      fill: none;
+      animation: stroke .6s cubic-bezier(.65,.05,.36,1) forwards;
+    }
+    .checkmark__check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: stroke .3s cubic-bezier(.65,.05,.36,1) .6s forwards;
+    }
+    @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    @keyframes scale { 0%,100% { transform: none; } 50% { transform: scale3d(1.1,1.1,1); } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #4caf50; } }
+
+    /* Truck Animation CSS - Updated */
+    @keyframes drive-truck {
+      from {
+        transform: translateX(100vw) scaleX(-1); /* Start from right, flipped */
+      }
+      to {
+        transform: translateX(-100vw) scaleX(-1); /* End at left, flipped */
+      }
+    }
+    .truck-driving {
+      /* Faster and smoother animation */
+      animation: drive-truck 1.8s ease-in-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-gray-200 shadow-lg z-50" style="max-width: 390px; margin: auto;">
+    <button id="burger" class="p-2 text-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <h1 id="header-title" class="text-xl font-bold text-gray-800">Products</h1>
+    <button id="cart-btn" class="relative p-2 text-gray-800">
+      <!-- New Cart Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <span id="cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs px-1">0</span>
+    </button>
+  </header>
+
+  <!-- Main content -->
+  <main id="products-view" class="p-4 grid grid-cols-2 gap-4">
+    <!-- Product cards will be generated here by JavaScript -->
+  </main>
+
+  <!-- Cart page -->
+  <section id="cart-view" class="hidden p-4">
+    <div id="cart-items" class="space-y-4"></div>
+    <button id="get-products" class="mt-6 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition disabled:bg-gray-400" disabled>Get Products</button>
+  </section>
+
+  <!-- Form Modal -->
+  <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-11/12 max-w-sm">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Delivery Details</h2>
+      <div class="space-y-4">
+          <input type="text" id="address" placeholder="Your delivery address" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+          <input type="email" id="email" placeholder="Your email for notifications" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+      </div>
+      <button id="proceed-btn" class="mt-8 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition">Proceed</button>
+    </div>
+  </div>
+
+  <!-- Truck Animation -->
+  <div id="truck-animation-container" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center hidden z-50">
+      <!-- Using image for truck, bigger size -->
+      <div id="truck">
+        <img src="https://cdn-icons-png.flaticon.com/512/726/726455.png" alt="Delivery Truck" class="w-120 h-120">
+      </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl text-center space-y-4">
+      <div class="flex justify-center">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14 27l7 7 16-16"/>
+        </svg>
+      </div>
+      <p class="text-lg font-medium">Your clothes are on the way</p>
+      <p id="countdown" class="text-2xl font-bold"></p>
+      <button id="close-modal" class="mt-4 px-4 py-2 bg-white text-gray-800 rounded-lg shadow hover:bg-gray-100 transition">Get more</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- DATA ---
+      // Product data: replace name and img with your values and local image paths
+    const products = [
+      { id: 1, name: 'Jordan 1 Low', img: '1.jpg' },
+      { id: 2, name: 'Arab Gucci Bag', img: '2.jpg' },
+      { id: 3, name: 'Stone island hoodie', img: '3.jpg' },
+      { id: 4, name: 'Stone island sweeter', img: '4.jpg' },
+      { id: 5, name: 'Tears hoodie', img: '5.jpg' },
+      { id: 6, name: 'Burberry', img: '6.jpg' },
+      { id: 7, name: 'CDG Hoodie', img: '7.jpg' },
+      { id: 8, name: 'BAPE Zip', img: '8.jpg' },
+
+
+
+      // добавьте остальные товары вручную
+    ];
+      const cart = new Set();
+
+      // --- DOM ELEMENTS ---
+      const productsView = document.getElementById('products-view');
+      const cartView = document.getElementById('cart-view');
+      const cartCount = document.getElementById('cart-count');
+      const cartBtn = document.getElementById('cart-btn');
+      const burgerBtn = document.getElementById('burger');
+      const headerTitle = document.getElementById('header-title');
+      const getProductsBtn = document.getElementById('get-products');
+      const modal = document.getElementById('modal');
+      const closeModalBtn = document.getElementById('close-modal');
+      const formModal = document.getElementById('form-modal');
+      const proceedBtn = document.getElementById('proceed-btn');
+      const truckAnimationContainer = document.getElementById('truck-animation-container');
+      const truck = document.getElementById('truck');
+
+      // --- FUNCTIONS ---
+      // Function to switch between views
+      function showView(view) {
+        productsView.classList.add('hidden');
+        cartView.classList.add('hidden');
+        view.classList.remove('hidden');
+        headerTitle.textContent = view === productsView ? 'Products' : 'Cart';
+      }
+      
+      // Render all product cards
+      function renderProducts() {
+        productsView.innerHTML = '';
+        products.forEach(p => {
+          const card = document.createElement('div');
+          // Using ring utility instead of border to prevent layout shift
+          card.className = 'bg-white rounded-xl shadow-lg p-3 flex flex-col transition-transform duration-200 hover:scale-105';
+          card.id = `prod-${p.id}`;
+          if (cart.has(p.id)) {
+            card.classList.add('ring-4', 'ring-green-500');
+          }
+          card.innerHTML = `
+            <img src="${p.img}" alt="${p.name}" class="rounded-lg mb-2 object-cover h-32 w-full" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Image+not+found';" />
+            <div class="flex items-center justify-between mt-auto pt-2">
+              <h3 class="font-medium text-base text-gray-800 flex-1">${p.name}</h3>
+              <button class="add-cart focus:outline-none text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-100 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>`;
+          
+          const addBtn = card.querySelector('.add-cart');
+          const addIcon = addBtn.querySelector('svg');
+          
+          // Update icon based on cart state
+          const updateIcon = () => {
+              if(cart.has(p.id)) {
+                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`; // Checkmark
+              } else {
+                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />`; // Plus
+              }
+          };
+
+          addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Toggle ring class instead of border
+            card.classList.toggle('ring-4');
+            card.classList.toggle('ring-green-500');
+            
+            if (cart.has(p.id)) {
+              cart.delete(p.id);
+            } else {
+              cart.add(p.id);
+            }
+            cartCount.textContent = cart.size;
+            getProductsBtn.disabled = cart.size === 0;
+            updateIcon();
+          });
+          
+          updateIcon();
+          productsView.appendChild(card);
+        });
+      }
+
+      // Render items in the cart view
+      function renderCart() {
+        const container = document.getElementById('cart-items');
+        container.innerHTML = '';
+        if (cart.size === 0) {
+          container.innerHTML = '<p class="text-gray-600 text-center">Your cart is empty.</p>';
+          getProductsBtn.disabled = true;
+          return;
+        }
+        
+        getProductsBtn.disabled = false;
+        cart.forEach(id => {
+          const p = products.find(x => x.id === id);
+          const el = document.createElement('div');
+          el.className = 'flex items-center bg-white rounded-2xl shadow-xl p-4 space-x-4';
+          el.innerHTML = `
+            <img src="${p.img}" class="h-20 w-20 rounded-lg object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Image+not+found';"/>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-gray-900 mb-1">${p.name}</h3>
+            </div>`;
+          container.appendChild(el);
+        });
+      }
+
+      // Countdown timer for the success modal
+      function startCountdown(duration) {
+        let timer = duration;
+        const display = document.getElementById('countdown');
+        if (!display) return;
+        clearInterval(window._countdownInterval);
+        window._countdownInterval = setInterval(() => {
+          const hrs = Math.floor(timer / 3600);
+          const mins = Math.floor((timer % 3600) / 60);
+          const secs = timer % 60;
+          display.textContent = 
+            String(hrs).padStart(2, '0') + ':' +
+            String(mins).padStart(2, '0') + ':' +
+            String(secs).padStart(2, '0');
+          if (--timer < 0) clearInterval(window._countdownInterval);
+        }, 1000);
+      }
+
+      // --- EVENT LISTENERS ---
+      // Navigate to cart view
+      cartBtn.addEventListener('click', () => {
+        showView(cartView);
+        renderCart();
+      });
+      
+      // Navigate back to products view (using burger icon for now)
+      burgerBtn.addEventListener('click', () => {
+        showView(productsView);
+      });
+
+      // Show form when "Get Products" is clicked
+      getProductsBtn.addEventListener('click', () => {
+        formModal.classList.remove('hidden');
+      });
+
+      // Handle form submission and truck animation
+      proceedBtn.addEventListener('click', () => {
+        formModal.classList.add('hidden');
+        truckAnimationContainer.classList.remove('hidden');
+        truck.classList.add('truck-driving');
+
+        // After animation, show the final success modal - updated duration
+        setTimeout(() => {
+          truckAnimationContainer.classList.add('hidden');
+          truck.classList.remove('truck-driving'); // Reset animation class
+          modal.classList.remove('hidden');
+          startCountdown(4 * 3600); // Start countdown now
+        }, 1800); // Match new animation duration
+      });
+
+      // Close success modal and return to product page
+      closeModalBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        showView(productsView);
+        // Optionally clear cart and reset product styles
+        cart.clear();
+        cartCount.textContent = 0;
+        getProductsBtn.disabled = true;
+        renderProducts();
+      });
+
+      // --- INITIALIZATION ---
+      renderProducts();
+    });
+  </script>
+</body>
+</html>
