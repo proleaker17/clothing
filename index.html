@@ -6,22 +6,23 @@
   <title>Shop</title>
   <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&family=Poppins:wght@600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /*
-      Здесь можно менять основные цвета сайта:
-      - Header: класс bg-gray-200 (светлосерый) и z-index через класс z-50
-      - Кнопка Get Products: класс bg-purple-600 и hover:bg-purple-700
-      - Модальное окно: градиент from-green-400 to-blue-500
-      - Фон страницы: класс bg-gray-100
-      - Цвета текста: text-gray-800, text-gray-600 и т.д.
-      Для изменения просто замените эти классы на нужные Tailwind цвета или добавьте свои в tailwind.config.js
-    */
     body {
       max-width: 390px;
       margin: auto;
-      padding-top: 4rem; /* Отступ сверху под фиксированный хедер */
-      overflow-x: hidden; /* Prevent horizontal scroll during animation */
+      padding-top: 4rem;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-poppins { font-family: 'Poppins', sans-serif; }
+    .font-nunito { font-family: 'Nunito', sans-serif; }
+
     .checkmark {
       width: 56px;
       height: 56px;
@@ -30,15 +31,15 @@
       stroke-width: 2;
       stroke: #fff;
       stroke-miterlimit: 10;
-      box-shadow: inset 0px 0px 0px #4caf50;
       animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+      filter: drop-shadow(0 3px 3px rgba(0,0,0,0.25)); /* Added shadow */
     }
     .checkmark__circle {
       stroke-dasharray: 166;
       stroke-dashoffset: 166;
       stroke-width: 2;
       stroke-miterlimit: 10;
-      stroke: #4caf50;
+      stroke: var(--checkmark-stroke-color);
       fill: none;
       animation: stroke .6s cubic-bezier(.65,.05,.36,1) forwards;
     }
@@ -50,118 +51,91 @@
     }
     @keyframes stroke { 100% { stroke-dashoffset: 0; } }
     @keyframes scale { 0%,100% { transform: none; } 50% { transform: scale3d(1.1,1.1,1); } }
-    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #4caf50; } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px var(--checkmark-fill-color); } }
 
-    /* Truck Animation CSS - Updated */
     @keyframes drive-truck {
-      from {
-        transform: translateX(100vw) scaleX(-1); /* Start from right, flipped */
-      }
-      to {
-        transform: translateX(-100vw) scaleX(-1); /* End at left, flipped */
-      }
+      from { transform: translateX(100vw) scaleX(-1); }
+      to { transform: translateX(-100vw) scaleX(-1); }
     }
     .truck-driving {
-      /* Faster and smoother animation */
       animation: drive-truck 1.8s ease-in-out forwards;
+    }
+    .active-set-indicator {
+        background-color: #10B981; /* Green-500 */
+        color: white;
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans">
+<body data-theme-target="body">
   <!-- Header -->
-  <header class="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-gray-200 shadow-lg z-50" style="max-width: 390px; margin: auto;">
-    <button id="admin-panel-btn" class="p-2 text-gray-800">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
-    <h1 id="header-title" class="text-xl font-bold text-gray-800">Products</h1>
-    <button id="cart-btn" class="relative p-2 text-gray-800">
-      <!-- New Cart Icon -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-      </svg>
-      <span id="cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs px-1">0</span>
+  <header data-theme-target="header" class="fixed top-0 left-0 right-0 flex items-center justify-between p-4 z-50 transition-colors duration-300" style="max-width: 390px; margin: auto;">
+    <button id="admin-panel-btn" class="p-2" data-theme-target="icon-button"><i data-icon="admin"></i></button>
+    <h1 id="header-title" class="text-xl font-bold" data-theme-target="header-title">Store</h1>
+    <button id="cart-btn" class="relative p-2" data-theme-target="icon-button">
+      <i data-icon="cart"></i>
+      <span id="cart-count" class="absolute top-0 right-0 h-5 w-5 flex items-center justify-center rounded-full text-xs font-bold" data-theme-target="cart-badge">0</span>
     </button>
   </header>
 
   <!-- Main content -->
-  <main id="products-view" class="p-4 grid grid-cols-2 gap-4">
-    <!-- Product cards will be generated here by JavaScript -->
+  <main id="store-view" class="p-4">
+    <div id="products-grid" class="grid grid-cols-2 gap-4">
+      <!-- Product cards will be generated here by JavaScript -->
+    </div>
   </main>
 
   <!-- Cart page -->
   <section id="cart-view" class="hidden p-4">
     <div id="cart-items" class="space-y-4"></div>
-    <button id="get-products" class="mt-6 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition disabled:bg-gray-400" disabled>Get Products</button>
+    <button id="get-products" class="mt-6 w-full py-3 text-white rounded-lg text-lg shadow-md transition disabled:opacity-50" data-theme-target="primary-button" disabled>Get Products</button>
   </section>
 
-  <!-- Admin Panel -->
-  <section id="admin-panel-view" class="hidden p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">Admin Panel</h2>
-      <button id="close-admin-panel-btn" class="p-2 text-gray-600 hover:text-gray-900">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+  <!-- Admin Panel (List of Sets) -->
+  <section id="admin-sets-list-view" class="hidden p-4 space-y-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold" data-theme-target="text-main">Manage Sets</h2>
+      <button id="close-admin-panel-btn" class="p-2" data-theme-target="icon-button"><i data-icon="close"></i></button>
     </div>
-
-    <!-- Add Product Form -->
-    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-      <h3 class="text-lg font-semibold mb-3">Add New Product</h3>
-      <form id="add-product-form" class="space-y-3">
-        <input type="text" id="new-product-name" placeholder="Product Name" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
-        
-        <!-- Image Source Toggle -->
-        <div class="flex items-center space-x-4 pt-2">
-            <label class="flex items-center"><input type="radio" name="imageSource" value="url" checked class="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"> URL</label>
-            <label class="flex items-center"><input type="radio" name="imageSource" value="file" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"> Upload</label>
+    <form id="create-set-form" class="flex items-center space-x-2">
+        <input type="text" id="new-set-name" placeholder="New Set Name" class="flex-grow px-3 py-2 border rounded-md" data-theme-target="input" required>
+        <button type="submit" class="py-2 px-4 text-white rounded-md whitespace-nowrap" data-theme-target="success-button">Create Set</button>
+    </form>
+    <div id="set-list-container" class="space-y-3">
+        <!-- List of sets will be rendered here -->
+    </div>
+    <!-- Google Drive Import -->
+    <div class="p-4 rounded-lg" data-theme-target="card">
+        <h3 class="text-lg font-semibold mb-3" data-theme-target="text-main">Import from Google Drive</h3>
+        <div class="space-y-2">
+            <input type="url" id="gdrive-url" placeholder="Public Google Drive Folder URL" class="w-full px-3 py-2 border rounded-md" data-theme-target="input">
+            <div class="flex space-x-2">
+                <button id="import-single-set-btn" class="w-full py-2 text-sm text-white rounded-md" data-theme-target="primary-button">Import Single Set</button>
+                <button id="import-multiple-sets-btn" class="w-full py-2 text-sm text-white rounded-md" data-theme-target="primary-button">Import Multiple</button>
+            </div>
+            <p id="import-status" class="text-sm text-center h-4" data-theme-target="text-muted"></p>
         </div>
-
-        <!-- Image Inputs -->
-        <div id="image-url-group">
-            <input type="url" id="new-product-image-url" placeholder="Image URL" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-        </div>
-        <div id="image-file-group" class="hidden">
-            <input type="file" id="new-product-image-file" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-        </div>
-
-        <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Add Product</button>
-      </form>
     </div>
-
-    <!-- Delivery Time Setting -->
-    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-      <h3 class="text-lg font-semibold mb-3">Settings</h3>
-      <div class="flex items-center justify-between">
-        <label for="delivery-time" class="text-gray-700">Delivery Time (hours):</label>
-        <input type="number" id="delivery-time" min="1" value="4" class="w-20 px-3 py-2 border border-gray-300 rounded-md">
-      </div>
-    </div>
-
-    <!-- Product Management List -->
-    <h3 class="text-lg font-semibold mb-3">Manage Products</h3>
-    <div id="admin-product-list" class="space-y-3">
-      <!-- Admin product list will be generated here -->
-    </div>
+  </section>
+  
+  <!-- Admin Panel (Edit a single Set) -->
+  <section id="admin-edit-set-view" class="hidden p-4 space-y-6">
+      <!-- Content is generated dynamically -->
   </section>
 
   <!-- Form Modal -->
   <div id="form-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-11/12 max-w-sm">
-      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Delivery Details</h2>
-      <div class="space-y-4">
-          <input type="text" id="address" placeholder="Your delivery address" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-          <input type="email" id="email" placeholder="Your email for notifications" class="block w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-      </div>
-      <button id="proceed-btn" class="mt-8 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition">Proceed</button>
+    <div class="p-8 rounded-xl shadow-lg w-11/12 max-w-sm" data-theme-target="modal">
+      <h2 class="text-2xl font-bold mb-6 text-center" data-theme-target="text-main">Delivery Details</h2>
+      <form id="delivery-form" class="space-y-4">
+          <input type="text" id="address" placeholder="Your delivery address" class="block w-full px-4 py-3 border rounded-lg shadow-sm" data-theme-target="input">
+          <input type="email" id="email" placeholder="Your email for notifications" class="block w-full px-4 py-3 border rounded-lg shadow-sm" data-theme-target="input">
+      </form>
+      <button id="proceed-btn" class="mt-8 w-full py-3 text-white rounded-lg text-lg shadow-md transition" data-theme-target="primary-button">Proceed</button>
     </div>
   </div>
 
   <!-- Truck Animation -->
   <div id="truck-animation-container" class="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center hidden z-50">
-      <!-- Using image for truck, bigger size -->
       <div id="truck">
         <img src="https://cdn-icons-png.flaticon.com/512/726/726455.png" alt="Delivery Truck" class="w-40 h-40">
       </div>
@@ -169,45 +143,172 @@
 
   <!-- Success Modal -->
   <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl text-center space-y-4">
+    <div class="p-6 rounded-xl text-center space-y-4" data-theme-target="success-gradient">
       <div class="flex justify-center">
         <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
           <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
           <path class="checkmark__check" fill="none" d="M14 27l7 7 16-16"/>
         </svg>
       </div>
-      <p class="text-lg font-medium">Your clothes are on the way</p>
-      <p id="countdown" class="text-2xl font-bold"></p>
-      <button id="close-modal" class="mt-4 px-4 py-2 bg-white text-gray-800 rounded-lg shadow hover:bg-gray-100 transition">Get more</button>
+      <p class="text-lg font-medium" data-theme-target="success-text">Your products are on the way</p>
+      <p id="countdown" class="text-2xl font-bold" data-theme-target="success-text"></p>
+      <div class="flex flex-col items-center space-y-2">
+        <button id="close-modal" class="w-full px-4 py-2 rounded-lg shadow transition" data-theme-target="modal-button">Get more</button>
+        <button id="speed-up-btn" class="w-full px-4 py-2 rounded-lg shadow transition hidden" data-theme-target="modal-button">Speed Up Delivery</button>
+      </div>
     </div>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // --- API KEY ---
+      const GOOGLE_API_KEY = "AIzaSyAERFGUKDw8amla4Ai97UusQ04FR7iWzto";
+
+      // --- THEME DATA ---
+      const themes = {
+        light: {
+          name: 'Light',
+          classes: {
+            body: 'bg-slate-50 font-inter',
+            header: 'bg-white/80 backdrop-blur-sm shadow-sm',
+            card: 'bg-white shadow-md',
+            'primary-button': 'bg-indigo-600 hover:bg-indigo-700',
+            'success-button': 'bg-emerald-500 hover:bg-emerald-600',
+            'icon-button': 'text-gray-700 hover:text-indigo-600',
+            'cart-badge': 'bg-indigo-500 text-white',
+            'header-title': 'text-gray-900',
+            'text-main': 'text-gray-900',
+            'text-muted': 'text-gray-500',
+            input: 'bg-white border-gray-300 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500',
+            modal: 'bg-white',
+            'modal-button': 'bg-white/80 text-gray-800 hover:bg-white',
+            'success-gradient': 'bg-gradient-to-r from-emerald-400 to-cyan-400',
+            'success-text': 'text-white',
+          },
+          checkmarkColor: '#10b981',
+          icons: {
+            admin: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>`,
+            cart: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>`,
+            close: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`,
+            edit: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>`,
+            delete: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
+            add: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`,
+            check: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`,
+          }
+        },
+        dark: {
+          name: 'Dark',
+          classes: {
+            body: 'bg-slate-900 font-inter',
+            header: 'bg-slate-800/80 backdrop-blur-sm shadow-lg shadow-black/20',
+            card: 'bg-slate-800 shadow-lg shadow-black/20',
+            'primary-button': 'bg-sky-500 hover:bg-sky-600',
+            'success-button': 'bg-teal-500 hover:bg-teal-600',
+            'icon-button': 'text-slate-400 hover:text-white',
+            'cart-badge': 'bg-sky-500 text-white',
+            'header-title': 'text-white',
+            'text-main': 'text-slate-100',
+            'text-muted': 'text-slate-400',
+            input: 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-sky-500 focus:border-sky-500',
+            modal: 'bg-slate-800',
+            'modal-button': 'bg-slate-600/80 text-white hover:bg-slate-500',
+            'success-gradient': 'bg-gradient-to-r from-teal-500 to-sky-500',
+            'success-text': 'text-white',
+          },
+          checkmarkColor: '#0ea5e9',
+          icons: { /* Uses light theme icons by default */ }
+        },
+        luxe: {
+          name: 'Luxe',
+          classes: {
+            body: 'bg-[#1C1C1C] font-inter',
+            header: 'bg-[#1C1C1C]/80 backdrop-blur-sm border-b border-[#D4AF37]/20',
+            card: 'bg-[#252525] border border-white/10 shadow-lg shadow-yellow-900/10',
+            'primary-button': 'bg-[#D4AF37] hover:bg-[#b89b3e] text-black font-bold tracking-wider uppercase',
+            'success-button': 'bg-[#D4AF37] hover:bg-[#b89b3e] text-black font-bold',
+            'icon-button': 'text-[#D4AF37]/80 hover:text-[#D4AF37]',
+            'cart-badge': 'bg-white text-black',
+            'header-title': 'text-[#D4AF37] tracking-widest font-playfair',
+            'text-main': 'text-gray-100 font-inter',
+            'text-muted': 'text-gray-500 font-inter',
+            input: 'bg-[#252525] border-white/10 text-white placeholder-gray-500 focus:ring-[#D4AF37] focus:border-[#D4AF37]',
+            modal: 'bg-[#1C1C1C] border border-[#D4AF37]/20',
+            'modal-button': 'bg-white/10 text-white hover:bg-white/20',
+            'success-gradient': 'bg-gradient-to-tr from-yellow-900 via-black to-black',
+            'success-text': 'text-gray-100',
+          },
+          checkmarkColor: '#D4AF37',
+          icons: { /* Uses light theme icons by default */ }
+        },
+        sunset: {
+          name: 'Sunset',
+          classes: {
+            body: 'bg-slate-800 font-poppins',
+            header: 'bg-slate-700/80 backdrop-blur-sm',
+            card: 'bg-slate-700 shadow-lg shadow-black/20',
+            'primary-button': 'bg-orange-500 hover:bg-orange-600',
+            'success-button': 'bg-pink-500 hover:bg-pink-600',
+            'icon-button': 'text-orange-400 hover:text-orange-300',
+            'cart-badge': 'bg-pink-500 text-white',
+            'header-title': 'text-white font-bold',
+            'text-main': 'text-slate-100',
+            'text-muted': 'text-slate-400',
+            input: 'bg-slate-600 border-slate-500 text-white placeholder-slate-400 focus:ring-orange-500 focus:border-orange-500',
+            modal: 'bg-slate-700',
+            'modal-button': 'bg-slate-600/80 text-white hover:bg-slate-500',
+            'success-gradient': 'bg-gradient-to-r from-pink-500 to-orange-500',
+            'success-text': 'text-white',
+          },
+          checkmarkColor: '#f97316',
+          icons: { /* Uses light theme icons by default */ }
+        },
+        minty: {
+          name: 'Minty',
+          classes: {
+            body: 'bg-emerald-50 font-nunito',
+            header: 'bg-white/80 backdrop-blur-sm shadow-sm',
+            card: 'bg-white shadow-md',
+            'primary-button': 'bg-emerald-500 hover:bg-emerald-600',
+            'success-button': 'bg-green-500 hover:bg-green-600',
+            'icon-button': 'text-emerald-800 hover:text-emerald-600',
+            'cart-badge': 'bg-emerald-500 text-white',
+            'header-title': 'text-emerald-900 font-bold',
+            'text-main': 'text-gray-800',
+            'text-muted': 'text-gray-500',
+            input: 'bg-white border-gray-300 placeholder-gray-400 focus:ring-emerald-500 focus:border-emerald-500',
+            modal: 'bg-white',
+            'modal-button': 'bg-gray-100/80 text-gray-800 hover:bg-gray-200',
+            'success-gradient': 'bg-gradient-to-r from-green-400 to-emerald-400',
+            'success-text': 'text-white',
+          },
+          checkmarkColor: '#10b981',
+          icons: { /* Uses light theme icons by default */ }
+        }
+      };
+      // Fill in missing icons with light theme icons as default
+      Object.values(themes).forEach(theme => {
+        if (!theme.icons || Object.keys(theme.icons).length === 0) {
+            theme.icons = themes.light.icons;
+        }
+      });
+
       // --- DATA ---
-      let deliveryTimeInHours = 4;
-    const products = [
-      { id: 1, name: 'Jordan 1 Low', img: '1.jpg' },
-      { id: 2, name: 'Arab Gucci Bag', img: '2.jpg' },
-      { id: 3, name: 'Stone island hoodie', img: '3.jpg' },
-      { id: 4, name: 'Stone island sweeter', img: '4.jpg' },
-      { id: 5, name: 'Tears hoodie', img: '5.jpg' },
-      { id: 6, name: 'Burberry', img: '6.jpg' },
-      { id: 7, name: 'CDG Hoodie', img: '7.jpg' },
-      { id: 8, name: 'BAPE Zip', img: '8.jpg' },
-
-
-
-      // добавьте остальные товары вручную
-    ];
+      let sets = [];
+      const placeholderProducts = [
+        { id: 901, name: 'Coming Soon', img: 'https://placehold.co/400x400/f1f5f9/9ca3af?text=?' },
+        { id: 902, name: 'Coming Soon', img: 'https://placehold.co/400x400/f1f5f9/9ca3af?text=?' },
+      ];
+      let activeSetId = null;
       const cart = new Set();
 
       // --- DOM ELEMENTS ---
-      const productsView = document.getElementById('products-view');
+      const storeView = document.getElementById('store-view');
       const cartView = document.getElementById('cart-view');
-      const adminPanelView = document.getElementById('admin-panel-view');
-      const allViews = [productsView, cartView, adminPanelView];
-
+      const adminSetsListView = document.getElementById('admin-sets-list-view');
+      const adminEditSetView = document.getElementById('admin-edit-set-view');
+      const allViews = [storeView, cartView, adminSetsListView, adminEditSetView];
+      
+      const productsGrid = document.getElementById('products-grid');
       const cartCount = document.getElementById('cart-count');
       const cartBtn = document.getElementById('cart-btn');
       const adminPanelBtn = document.getElementById('admin-panel-btn');
@@ -216,260 +317,547 @@
       const getProductsBtn = document.getElementById('get-products');
       const modal = document.getElementById('modal');
       const closeModalBtn = document.getElementById('close-modal');
+      const speedUpBtn = document.getElementById('speed-up-btn');
       const formModal = document.getElementById('form-modal');
+      const deliveryForm = document.getElementById('delivery-form');
       const proceedBtn = document.getElementById('proceed-btn');
       const truckAnimationContainer = document.getElementById('truck-animation-container');
-      const truck = document.getElementById('truck');
+      const createSetForm = document.getElementById('create-set-form');
+      const newSetNameInput = document.getElementById('new-set-name');
+      const setListContainer = document.getElementById('set-list-container');
+      const gdriveUrlInput = document.getElementById('gdrive-url');
+      const importSingleBtn = document.getElementById('import-single-set-btn');
+      const importMultipleBtn = document.getElementById('import-multiple-sets-btn');
+      const importStatus = document.getElementById('import-status');
       
-      // Admin Panel Elements
-      const addProductForm = document.getElementById('add-product-form');
-      const newProductNameInput = document.getElementById('new-product-name');
-      const adminProductList = document.getElementById('admin-product-list');
-      const deliveryTimeInput = document.getElementById('delivery-time');
-      const imageSourceRadios = document.querySelectorAll('input[name="imageSource"]');
-      const imageUrlGroup = document.getElementById('image-url-group');
-      const imageFileGroup = document.getElementById('image-file-group');
-      const newProductImageUrlInput = document.getElementById('new-product-image-url');
-      const newProductImageFileInput = document.getElementById('new-product-image-file');
+      const allThemeClasses = [...new Set(Object.values(themes).flatMap(t => Object.values(t.classes)))].flatMap(c => c.split(' '));
 
       // --- FUNCTIONS ---
-      // Function to switch between views
+      function saveSets() {
+        localStorage.setItem('shop-app-sets', JSON.stringify(sets));
+      }
+
+      function loadSets() {
+        const savedSets = localStorage.getItem('shop-app-sets');
+        if (savedSets) {
+          sets = JSON.parse(savedSets);
+          activeSetId = sets.length > 0 ? sets[0].id : null;
+        }
+      }
+
+      function applyTheme(themeName) {
+        const theme = themes[themeName] || themes.light;
+        
+        document.querySelectorAll('[data-theme-target]').forEach(el => {
+            const preservedClasses = el.className.split(' ').filter(c => !allThemeClasses.includes(c));
+            el.className = preservedClasses.join(' ');
+            
+            const target = el.dataset.themeTarget;
+            if (theme.classes[target]) {
+                el.classList.add(...theme.classes[target].split(' '));
+            }
+        });
+        
+        document.querySelectorAll('[data-icon]').forEach(el => {
+            const iconName = el.dataset.icon;
+            if (theme.icons[iconName]) {
+                el.innerHTML = theme.icons[iconName];
+            }
+        });
+
+        document.documentElement.style.setProperty('--checkmark-fill-color', theme.checkmarkColor);
+        document.documentElement.style.setProperty('--checkmark-stroke-color', theme.checkmarkColor);
+      }
+
       function showView(viewToShow) {
         allViews.forEach(view => view.classList.add('hidden'));
         viewToShow.classList.remove('hidden');
-
-        if (viewToShow === productsView) {
-            headerTitle.textContent = 'Products';
-        } else if (viewToShow === cartView) {
-            headerTitle.textContent = 'Cart';
-        } else if (viewToShow === adminPanelView) {
-            headerTitle.textContent = 'Admin Panel';
-        }
+        if (viewToShow === storeView) headerTitle.textContent = 'Store';
+        else if (viewToShow === cartView) headerTitle.textContent = 'Cart';
+        else if (viewToShow === adminSetsListView) headerTitle.textContent = 'Manage Sets';
       }
       
-      // Render all product cards for customers
-      function renderProducts() {
-        productsView.innerHTML = '';
-        products.forEach(p => {
+      function renderProductsGrid() {
+        productsGrid.innerHTML = '';
+        const activeSet = sets.find(s => s.id === activeSetId);
+        const themeToApply = activeSet ? activeSet.theme : 'light';
+        applyTheme(themeToApply);
+        
+        if (!activeSet) {
+            productsGrid.innerHTML = `<p class="col-span-2 text-center" data-theme-target="text-muted">No active set. Please select one in the admin panel.</p>`;
+            return;
+        }
+
+        const productsToRender = activeSet.items.length > 0 ? activeSet.items : placeholderProducts;
+        const isPlaceholder = activeSet.items.length === 0;
+
+        productsToRender.forEach(p => {
           const card = document.createElement('div');
-          card.className = 'bg-white rounded-xl shadow-lg p-3 flex flex-col transition-transform duration-200 hover:scale-105';
-          card.id = `prod-${p.id}`;
-          if (cart.has(p.id)) {
-            card.classList.add('ring-4', 'ring-green-500');
-          }
+          card.className = 'rounded-xl p-3 flex flex-col transition-transform duration-200 hover:scale-105';
+          card.setAttribute('data-theme-target', 'card');
+          if (cart.has(p.id)) card.classList.add('ring-4', 'ring-green-500');
+          if (isPlaceholder) card.classList.add('opacity-50');
+          
           card.innerHTML = `
             <img src="${p.img}" alt="${p.name}" class="rounded-lg mb-2 object-cover h-32 w-full" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Image+not+found';" />
             <div class="flex items-center justify-between mt-auto pt-2">
-              <h3 class="font-medium text-base text-gray-800 flex-1">${p.name}</h3>
-              <button class="add-cart focus:outline-none text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-100 flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
+              <h3 class="font-medium text-base flex-1" data-theme-target="text-main">${p.name}</h3>
+              <button data-id="${p.id}" class="add-cart focus:outline-none p-2 rounded-full flex-shrink-0" data-theme-target="icon-button" ${isPlaceholder ? 'disabled' : ''}><i data-icon="add"></i></button>
             </div>`;
           
-          const addBtn = card.querySelector('.add-cart');
-          const addIcon = addBtn.querySelector('svg');
-          
-          const updateIcon = () => {
-              if(cart.has(p.id)) {
-                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`;
-              } else {
-                  addIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />`;
-              }
-          };
-
-          addBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            card.classList.toggle('ring-4');
-            card.classList.toggle('ring-green-500');
-            
-            if (cart.has(p.id)) {
-              cart.delete(p.id);
-            } else {
-              cart.add(p.id);
-            }
-            cartCount.textContent = cart.size;
-            getProductsBtn.disabled = cart.size === 0;
-            updateIcon();
-          });
-          
-          updateIcon();
-          productsView.appendChild(card);
+          const addIcon = card.querySelector('.add-cart i');
+          addIcon.dataset.icon = cart.has(p.id) ? 'check' : 'add';
+          productsGrid.appendChild(card);
         });
+        applyTheme(themeToApply);
       }
 
-      // Render product list for the admin panel
-      function renderAdminProducts() {
-        adminProductList.innerHTML = '';
-        products.forEach((p, index) => {
-            const item = document.createElement('div');
-            item.className = 'flex items-center justify-between bg-white p-2 rounded-md shadow';
-            item.innerHTML = `
-                <img src="${p.img}" class="h-12 w-12 rounded-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/100x100/E2E8F0/4A5568?text=Img';">
-                <span class="flex-1 mx-4 text-gray-800">${p.name}</span>
-                <button data-index="${index}" class="delete-product-btn p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
+      function renderAdminSetsList() {
+        setListContainer.innerHTML = '';
+        if (sets.length === 0) {
+            setListContainer.innerHTML = `<p class="text-center" data-theme-target="text-muted">No sets created yet.</p>`;
+        }
+        sets.forEach(set => {
+            const isActive = set.id === activeSetId;
+            const setEl = document.createElement('div');
+            setEl.className = 'flex items-center justify-between p-3 rounded-md';
+            setEl.setAttribute('data-theme-target', 'card');
+            setEl.innerHTML = `
+                <span class="font-semibold" data-theme-target="text-main">${set.name}</span>
+                <div class="flex items-center space-x-2">
+                    <button data-id="${set.id}" class="set-active-btn text-xs font-semibold py-1 px-3 rounded-full transition-colors ${isActive ? 'active-set-indicator' : 'bg-gray-200 hover:bg-gray-300'}">${isActive ? 'Active' : 'Set Active'}</button>
+                    <button data-id="${set.id}" class="edit-set-btn p-2 rounded-full" data-theme-target="icon-button"><i data-icon="edit"></i></button>
+                    <button data-id="${set.id}" class="delete-set-btn p-2 rounded-full" data-theme-target="icon-button"><i data-icon="delete"></i></button>
+                </div>
             `;
-            adminProductList.appendChild(item);
+            setListContainer.appendChild(setEl);
         });
-
-        // Add event listeners to delete buttons
-        document.querySelectorAll('.delete-product-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const productIndex = e.currentTarget.dataset.index;
-                products.splice(productIndex, 1);
-                renderAdminProducts();
-                renderProducts();
-            });
-        });
+        applyTheme('light'); // Admin list always uses light theme for consistency
       }
 
-      // Render items in the cart view
+      function renderAdminEditSetView(setId) {
+        const set = sets.find(s => s.id === setId);
+        if (!set) {
+            showView(adminSetsListView);
+            return;
+        }
+
+        headerTitle.textContent = `Edit: ${set.name}`;
+        
+        const themeOptions = Object.keys(themes).map(key => 
+            `<option value="${key}" ${set.theme === key ? 'selected' : ''}>${themes[key].name}</option>`
+        ).join('');
+
+        adminEditSetView.innerHTML = `
+            <div class="flex justify-between items-center">
+                <button class="back-to-sets-list-btn font-semibold text-blue-600 hover:underline">
+                    &larr; Back to All Sets
+                </button>
+            </div>
+            <div class="p-4 rounded-lg bg-white shadow-md space-y-4">
+                <div>
+                    <label class="block font-semibold mb-1 text-gray-800">Set Theme</label>
+                    <select class="set-theme-select w-full p-2 border rounded-md bg-gray-50 border-gray-300" data-set-id="${set.id}">
+                        ${themeOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-gray-800">Delivery Time (Hours)</label>
+                    <input type="number" value="${set.deliveryHours}" min="1" class="set-delivery-time w-full p-2 border rounded-md bg-gray-50 border-gray-300" data-set-id="${set.id}">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="speed-up-toggle_${set.id}" class="set-speed-up-toggle h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-set-id="${set.id}" ${set.speedUpEnabled ? 'checked' : ''}>
+                    <label for="speed-up-toggle_${set.id}" class="ml-2 block text-sm text-gray-900">Allow Delivery Speed-Up</label>
+                </div>
+                <div class="pt-4 border-t border-gray-200">
+                  <h3 class="text-lg font-semibold mb-3 text-gray-800">Products in "${set.name}"</h3>
+                  <div class="space-y-3 mb-4 set-product-list">
+                      ${set.items.map(item => `
+                          <div class="flex items-center justify-between bg-gray-50 p-2 rounded-md shadow-sm">
+                              <img src="${item.img}" class="h-10 w-10 rounded-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/100x100/E2E8F0/4A5568?text=Img';">
+                              <span class="flex-1 mx-3 text-sm text-gray-800">${item.name}</span>
+                              <button data-set-id="${set.id}" data-item-id="${item.id}" class="delete-product-btn p-2 text-gray-400 hover:text-red-500 rounded-full">
+                                  <i data-icon="close"></i>
+                              </button>
+                          </div>
+                      `).join('') || `<p class="text-gray-500 text-center">No products in this set yet.</p>`}
+                  </div>
+
+                  <form class="add-product-form space-y-3 pt-4 border-t border-gray-200" data-set-id="${set.id}">
+                      <h4 class="font-semibold text-gray-800">Add New Product</h4>
+                      <input type="text" placeholder="Product Name" class="new-product-name w-full px-3 py-2 border rounded-md bg-gray-50 border-gray-300" required>
+                      
+                      <div class="flex items-center space-x-4 text-gray-800">
+                          <label class="flex items-center"><input type="radio" name="imageSource_${set.id}" value="url" checked class="image-source-radio mr-2 h-4 w-4 text-blue-600"> URL</label>
+                          <label class="flex items-center"><input type="radio" name="imageSource_${set.id}" value="file" class="image-source-radio mr-2 h-4 w-4 text-blue-600"> Upload</label>
+                      </div>
+
+                      <div class="image-url-group">
+                          <input type="url" placeholder="Image URL" class="new-product-image-url w-full px-3 py-2 border rounded-md bg-gray-50 border-gray-300">
+                      </div>
+                      <div class="image-file-group hidden">
+                          <input type="file" accept="image/*" class="new-product-image-file w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold bg-gray-50 text-gray-700 hover:bg-gray-100">
+                      </div>
+
+                      <button type="submit" class="w-full py-2 text-white rounded-md bg-blue-600 hover:bg-blue-700">Add Product to Set</button>
+                  </form>
+                </div>
+            </div>
+        `;
+        showView(adminEditSetView);
+        applyTheme('light'); // Edit view always uses light theme for consistency
+      }
+
       function renderCart() {
+        const activeSet = sets.find(s => s.id === activeSetId) || {theme: 'light'};
+        applyTheme(activeSet.theme);
+        
         const container = document.getElementById('cart-items');
         container.innerHTML = '';
         if (cart.size === 0) {
-          container.innerHTML = '<p class="text-gray-600 text-center">Your cart is empty.</p>';
+          container.innerHTML = `<p class="text-center" data-theme-target="text-muted">Your cart is empty.</p>`;
           getProductsBtn.disabled = true;
           return;
         }
         
         getProductsBtn.disabled = false;
-        products.filter(p => cart.has(p.id)).forEach(p => {
+        
+        const allProducts = sets.flatMap(s => s.items);
+        allProducts.filter(p => cart.has(p.id)).forEach(p => {
           const el = document.createElement('div');
-          el.className = 'flex items-center bg-white rounded-2xl shadow-xl p-4 space-x-4';
+          el.className = 'flex items-center rounded-2xl shadow-xl p-4 space-x-4';
+          el.setAttribute('data-theme-target', 'card');
           el.innerHTML = `
             <img src="${p.img}" class="h-20 w-20 rounded-lg object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x400/E2E8F0/4A5568?text=Image+not+found';"/>
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 mb-1">${p.name}</h3>
+              <h3 class="text-lg font-semibold mb-1" data-theme-target="text-main">${p.name}</h3>
             </div>`;
           container.appendChild(el);
         });
+        applyTheme(activeSet.theme);
       }
-
-      // Countdown timer for the success modal
+      
       function startCountdown(durationInSeconds) {
         let timer = durationInSeconds;
         const display = document.getElementById('countdown');
         if (!display) return;
         clearInterval(window._countdownInterval);
-        window._countdownInterval = setInterval(() => {
-          const hrs = Math.floor(timer / 3600);
-          const mins = Math.floor((timer % 3600) / 60);
-          const secs = timer % 60;
-          display.textContent = 
-            String(hrs).padStart(2, '0') + ':' +
-            String(mins).padStart(2, '0') + ':' +
-            String(secs).padStart(2, '0');
-          if (--timer < 0) clearInterval(window._countdownInterval);
-        }, 1000);
+        
+        const updateTimer = () => {
+            if (timer < 0) {
+                clearInterval(window._countdownInterval);
+                display.textContent = "Delivered!";
+                return;
+            }
+            const hrs = Math.floor(timer / 3600);
+            const mins = Math.floor((timer % 3600) / 60);
+            const secs = timer % 60;
+            display.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            timer--;
+        };
+
+        updateTimer(); // Run once immediately
+        window._countdownInterval = setInterval(updateTimer, 1000);
+      }
+      
+      function animateSpeedUp(startSeconds) {
+        clearInterval(window._countdownInterval);
+        const display = document.getElementById('countdown');
+        const duration = 2500; // 2.5 seconds
+        let startTime = null;
+
+        function animationStep(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = timestamp - startTime;
+            const remainingTime = Math.max(0, startSeconds - (startSeconds * (progress / duration)));
+            
+            const hrs = Math.floor(remainingTime / 3600);
+            const mins = Math.floor((remainingTime % 3600) / 60);
+            const secs = remainingTime % 60;
+            
+            display.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(Math.floor(secs)).padStart(2, '0')}`;
+
+            if (progress < duration) {
+                requestAnimationFrame(animationStep);
+            } else {
+                display.textContent = "Delivered!";
+            }
+        }
+        requestAnimationFrame(animationStep);
       }
 
       // --- EVENT LISTENERS ---
-      cartBtn.addEventListener('click', () => {
-        showView(cartView);
-        renderCart();
-      });
-      
-      adminPanelBtn.addEventListener('click', () => {
-        showView(adminPanelView);
-        renderAdminProducts();
-      });
+      adminPanelBtn.addEventListener('click', () => { showView(adminSetsListView); renderAdminSetsList(); });
+      closeAdminPanelBtn.addEventListener('click', () => { showView(storeView); renderProductsGrid(); });
+      cartBtn.addEventListener('click', () => { showView(cartView); renderCart(); });
+      getProductsBtn.addEventListener('click', () => { formModal.classList.remove('hidden'); });
 
-      closeAdminPanelBtn.addEventListener('click', () => {
-        showView(productsView);
-      });
+      productsGrid.addEventListener('click', e => {
+        const addBtn = e.target.closest('.add-cart');
+        if (addBtn) {
+            const productId = Number(addBtn.dataset.id);
+            const card = addBtn.closest('[data-theme-target="card"]');
+            
+            if (cart.has(productId)) cart.delete(productId);
+            else cart.add(productId);
+            
+            card.classList.toggle('ring-4', cart.has(productId));
+            card.classList.toggle('ring-green-500', cart.has(productId));
 
-      getProductsBtn.addEventListener('click', () => {
-        formModal.classList.remove('hidden');
+            cartCount.textContent = cart.size;
+            cartCount.classList.toggle('hidden', cart.size === 0);
+            getProductsBtn.disabled = cart.size === 0;
+            const icon = addBtn.querySelector('i');
+            icon.dataset.icon = cart.has(productId) ? 'check' : 'add';
+            const activeSet = sets.find(s => s.id === activeSetId);
+            applyTheme(activeSet.theme);
+        }
       });
 
       proceedBtn.addEventListener('click', () => {
         formModal.classList.add('hidden');
         truckAnimationContainer.classList.remove('hidden');
         truck.classList.add('truck-driving');
+        
+        const activeSet = sets.find(s => s.id === activeSetId);
+        if (activeSet) {
+            speedUpBtn.classList.toggle('hidden', !activeSet.speedUpEnabled);
+            speedUpBtn.disabled = false;
+            speedUpBtn.style.opacity = '1';
+        }
 
         setTimeout(() => {
           truckAnimationContainer.classList.add('hidden');
           truck.classList.remove('truck-driving');
           modal.classList.remove('hidden');
-          startCountdown(deliveryTimeInHours * 3600);
+          startCountdown(activeSet.deliveryHours * 3600);
         }, 1800);
       });
 
       closeModalBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
-        showView(productsView);
+        showView(storeView);
         cart.clear();
         cartCount.textContent = 0;
+        cartCount.classList.add('hidden');
         getProductsBtn.disabled = true;
-        renderProducts();
+        deliveryForm.reset();
+        renderProductsGrid();
       });
-
-      // Admin Panel Listeners
-      imageSourceRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.value === 'url') {
-                imageUrlGroup.classList.remove('hidden');
-                imageFileGroup.classList.add('hidden');
-            } else {
-                imageUrlGroup.classList.add('hidden');
-                imageFileGroup.classList.remove('hidden');
-            }
-        });
-      });
-
-      addProductForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = newProductNameInput.value.trim();
-        const imageSource = document.querySelector('input[name="imageSource"]:checked').value;
-
-        if (!name) return;
-
-        const createProduct = (imgUrl) => {
-            const newProduct = {
-                id: Date.now(),
-                name,
-                img: imgUrl
-            };
-            products.unshift(newProduct); // Add to the beginning of the array
-            renderAdminProducts();
-            renderProducts();
-            addProductForm.reset();
-            imageUrlGroup.classList.remove('hidden');
-            imageFileGroup.classList.add('hidden');
-        };
-
-        if (imageSource === 'url') {
-            const img = newProductImageUrlInput.value.trim();
-            if (img) {
-                createProduct(img);
-            }
-        } else { // imageSource === 'file'
-            const file = newProductImageFileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    createProduct(event.target.result);
-                };
-                reader.readAsDataURL(file);
-            }
+      
+      speedUpBtn.addEventListener('click', () => {
+        const display = document.getElementById('countdown');
+        const timeParts = display.textContent.split(':');
+        if (timeParts.length === 3) {
+            const remainingSeconds = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
+            animateSpeedUp(remainingSeconds);
+            speedUpBtn.disabled = true;
+            speedUpBtn.style.opacity = '0.5';
         }
       });
 
-      deliveryTimeInput.addEventListener('change', (e) => {
-        const newTime = parseInt(e.target.value, 10);
-        if (newTime > 0) {
-            deliveryTimeInHours = newTime;
+      // --- Admin Panel Listeners ---
+      createSetForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const name = newSetNameInput.value.trim();
+        if (name) {
+            const newSet = { id: Date.now(), name, theme: 'light', deliveryHours: 4, speedUpEnabled: false, items: [] };
+            sets.push(newSet);
+            if (!activeSetId) activeSetId = newSet.id;
+            newSetNameInput.value = '';
+            saveSets();
+            renderAdminSetsList();
+            renderProductsGrid();
+        }
+      });
+
+      setListContainer.addEventListener('click', e => {
+        const editBtn = e.target.closest('.edit-set-btn');
+        if (editBtn) {
+            renderAdminEditSetView(Number(editBtn.dataset.id));
+            return;
+        }
+        
+        const deleteBtn = e.target.closest('.delete-set-btn');
+        if (deleteBtn) {
+            const setId = Number(deleteBtn.dataset.id);
+            sets = sets.filter(s => s.id !== setId);
+            if (activeSetId === setId) activeSetId = sets.length > 0 ? sets[0].id : null;
+            saveSets();
+            renderAdminSetsList();
+            renderProductsGrid();
+            return;
+        }
+
+        const activeBtn = e.target.closest('.set-active-btn');
+        if (activeBtn) {
+            activeSetId = Number(activeBtn.dataset.id);
+            renderAdminSetsList();
+            renderProductsGrid();
+        }
+      });
+
+      adminEditSetView.addEventListener('click', e => {
+        if (e.target.closest('.back-to-sets-list-btn')) {
+            showView(adminSetsListView);
+            renderAdminSetsList();
+            return;
+        }
+        
+        const deleteProductBtn = e.target.closest('.delete-product-btn');
+        if (deleteProductBtn) {
+            const setId = Number(deleteProductBtn.dataset.setId);
+            const itemId = Number(deleteProductBtn.dataset.itemId);
+            const setToUpdate = sets.find(s => s.id === setId);
+            if (setToUpdate) setToUpdate.items = setToUpdate.items.filter(item => item.id !== itemId);
+            saveSets();
+            renderAdminEditSetView(setId);
+            renderProductsGrid();
+        }
+
+        if (e.target.matches('.image-source-radio')) {
+            const form = e.target.closest('form');
+            form.querySelector('.image-url-group').classList.toggle('hidden', e.target.value !== 'url');
+            form.querySelector('.image-file-group').classList.toggle('hidden', e.target.value !== 'file');
+        }
+      });
+      
+      adminEditSetView.addEventListener('change', e => {
+        const setId = Number(e.target.dataset.setId);
+        const setToUpdate = sets.find(s => s.id === setId);
+        if (!setToUpdate) return;
+        
+        if (e.target.matches('.set-theme-select')) {
+            setToUpdate.theme = e.target.value;
+            if (activeSetId === setId) renderProductsGrid();
+        }
+        if (e.target.matches('.set-delivery-time')) {
+            const newTime = parseInt(e.target.value, 10);
+            if (newTime > 0) setToUpdate.deliveryHours = newTime;
+        }
+        if (e.target.matches('.set-speed-up-toggle')) {
+            setToUpdate.speedUpEnabled = e.target.checked;
+        }
+        saveSets();
+      });
+
+      adminEditSetView.addEventListener('submit', e => {
+        if (e.target.matches('.add-product-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const setId = Number(form.dataset.setId);
+            const name = form.querySelector('.new-product-name').value.trim();
+            if (!name) return;
+
+            const imageSource = form.querySelector('input[name^="imageSource"]:checked').value;
+
+            const addProductToSet = (imgUrl) => {
+                const setToUpdate = sets.find(s => s.id === setId);
+                if (setToUpdate) {
+                    setToUpdate.items.push({ id: Date.now(), name, img: imgUrl });
+                    saveSets();
+                    renderAdminEditSetView(setId);
+                    if (activeSetId === setId) renderProductsGrid();
+                }
+            };
+
+            if (imageSource === 'url') {
+                const url = form.querySelector('.new-product-image-url').value.trim();
+                if (url) addProductToSet(url);
+            } else {
+                const file = form.querySelector('.new-product-image-file').files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => addProductToSet(event.target.result);
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+      });
+      
+      // --- Google Drive Import Logic ---
+      function extractFolderId(url) {
+        const match = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+        return match ? match[1] : null;
+      }
+
+      async function fetchFolderContents(folderId, mimeTypeQuery) {
+        const url = `https://www.googleapis.com/drive/v3/files?key=${GOOGLE_API_KEY}&q='${folderId}' in parents and (${mimeTypeQuery}) and trashed=false&fields=files(id,name,mimeType)`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch from Google Drive. Check URL and permissions.');
+        const data = await response.json();
+        return data.files || [];
+      }
+      
+      async function importSetFromFolder(folderId, folderName) {
+        const images = await fetchFolderContents(folderId, `mimeType='image/jpeg' or mimeType='image/png'`);
+        const newSet = {
+            id: Date.now(),
+            name: folderName,
+            theme: 'light',
+            deliveryHours: 4,
+            speedUpEnabled: false,
+            items: images.map((img, i) => ({
+                id: Date.now() + i,
+                name: img.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+                img: `https://lh3.googleusercontent.com/d/${img.id}` // Correct, stable URL format
+            }))
+        };
+        sets.push(newSet);
+        saveSets();
+      }
+
+      importSingleBtn.addEventListener('click', async () => {
+        const url = gdriveUrlInput.value;
+        const folderId = extractFolderId(url);
+        if (!folderId) {
+            importStatus.textContent = 'Invalid Google Drive URL.';
+            return;
+        }
+        importStatus.textContent = 'Importing...';
+        try {
+            const folderDetailsUrl = `https://www.googleapis.com/drive/v3/files/${folderId}?key=${GOOGLE_API_KEY}&fields=name`;
+            const folderResponse = await fetch(folderDetailsUrl);
+            const folderData = await folderResponse.json();
+            await importSetFromFolder(folderId, folderData.name || 'Imported Set');
+            importStatus.textContent = 'Successfully imported 1 set!';
+            renderAdminSetsList();
+            if (!activeSetId) activeSetId = sets[sets.length - 1].id;
+            renderProductsGrid();
+        } catch (error) {
+            importStatus.textContent = error.message;
+        }
+      });
+      
+      importMultipleBtn.addEventListener('click', async () => {
+        const url = gdriveUrlInput.value;
+        const parentFolderId = extractFolderId(url);
+        if (!parentFolderId) {
+            importStatus.textContent = 'Invalid Google Drive URL.';
+            return;
+        }
+        importStatus.textContent = 'Importing multiple sets...';
+        try {
+            const subfolders = await fetchFolderContents(parentFolderId, `mimeType='application/vnd.google-apps.folder'`);
+            if (subfolders.length === 0) {
+                importStatus.textContent = 'No subfolders found to import.';
+                return;
+            }
+            await Promise.all(subfolders.map(folder => importSetFromFolder(folder.id, folder.name)));
+            importStatus.textContent = `Successfully imported ${subfolders.length} sets!`;
+            renderAdminSetsList();
+            if (!activeSetId) activeSetId = sets[0].id;
+            renderProductsGrid();
+        } catch (error) {
+            importStatus.textContent = error.message;
         }
       });
 
       // --- INITIALIZATION ---
-      renderProducts();
+      loadSets();
+      cartCount.classList.toggle('hidden', cart.size === 0);
+      showView(storeView);
+      renderProductsGrid();
     });
   </script>
 </body>
